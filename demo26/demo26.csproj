@@ -133,7 +133,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="БД.sql" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\picture.png" />
   </ItemGroup>
