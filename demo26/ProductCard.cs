@@ -8,6 +8,7 @@ namespace demo26
 {
     public partial class ProductCard : UserControl
     {
+        
         public int ProductId { get; private set; }
 
         public ProductCard()
@@ -62,37 +63,40 @@ namespace demo26
                 BackColor = ColorTranslator.FromHtml("#2E8B57");
             else
                 BackColor = Color.White;
-        }
 
+        }
         private Image LoadPhotoOrStub(string path)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    var full = System.IO.Path.IsPathRooted(path)
-                        ? path
-                        : System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-                    if (System.IO.File.Exists(full))
+                    // если в БД уже лежит "Resources\\images\\1.jpg"
+                    string full = Path.IsPathRooted(path)
+                        ? path
+                        : Path.Combine(baseDir, path);
+
+                    // если в БД лежит только "1.jpg" — ищем в Resources\images
+                    if (!File.Exists(full))
+                        full = Path.Combine(baseDir, "Resources", "images", path);
+
+                    // запасной вариант: bin\...\images\1.jpg (если потом будет перенос файла)
+                    if (!File.Exists(full))
+                        full = Path.Combine(baseDir, "images", path);
+
+                    if (File.Exists(full))
                     {
-                        using (var fs = new System.IO.FileStream(full, System.IO.FileMode.Open, System.IO.FileAccess.Read))
-                        {
-           
-                            using (var img = Image.FromStream(fs))
-                            {
-                                return new Bitmap(img);
-                            }
-                        }
+                        using (var fs = new FileStream(full, FileMode.Open, FileAccess.Read))
+                        using (var img = Image.FromStream(fs))
+                            return new Bitmap(img);
                     }
                 }
             }
-            catch
-            {
-                // игнор — заглушку
-            }
+            catch { }
 
-            return Properties.Resources.picture; // заглушка из ресурсов
+            return Properties.Resources.picture; // заглушка
         }
 
         private void tip_Paint(object sender, PaintEventArgs e)
