@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Tovar));
             this.pTop = new System.Windows.Forms.Panel();
+            this.lblUserName = new System.Windows.Forms.Label();
             this.btnLogout = new System.Windows.Forms.Button();
             this.lblUser = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -41,7 +42,6 @@
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.poisk = new System.Windows.Forms.Label();
             this.flpProducts = new System.Windows.Forms.FlowLayoutPanel();
-            this.lblUserName = new System.Windows.Forms.Label();
             this.pTop.SuspendLayout();
             this.pTools.SuspendLayout();
             this.SuspendLayout();
@@ -58,6 +58,14 @@
             this.pTop.Size = new System.Drawing.Size(1380, 70);
             this.pTop.TabIndex = 0;
             // 
+            // lblUserName
+            // 
+            this.lblUserName.AutoSize = true;
+            this.lblUserName.Location = new System.Drawing.Point(1277, 7);
+            this.lblUserName.Name = "lblUserName";
+            this.lblUserName.Size = new System.Drawing.Size(0, 19);
+            this.lblUserName.TabIndex = 3;
+            // 
             // btnLogout
             // 
             this.btnLogout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -67,6 +75,7 @@
             this.btnLogout.TabIndex = 2;
             this.btnLogout.Text = "Выйти";
             this.btnLogout.UseVisualStyleBackColor = true;
+            this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);
             // 
             // lblUser
             // 
@@ -162,14 +171,6 @@
             this.flpProducts.Name = "flpProducts";
             this.flpProducts.Size = new System.Drawing.Size(1380, 617);
             this.flpProducts.TabIndex = 2;
-            // 
-            // lblUserName
-            // 
-            this.lblUserName.AutoSize = true;
-            this.lblUserName.Location = new System.Drawing.Point(1277, 7);
-            this.lblUserName.Name = "lblUserName";
-            this.lblUserName.Size = new System.Drawing.Size(0, 19);
-            this.lblUserName.TabIndex = 3;
             // 
             // Tovar
             // 

@@ -10,7 +10,7 @@ namespace demo26
     {
         
         static string conn = @"Data Source=(localdb)\test;Initial Catalog=Demo26.2;Integrated Security=true";
-        //SqlConnection con = new SqlConnection(conn);
+        
         public List<Product> GetAll()
         {
             var list = new List<Product>();
@@ -50,7 +50,7 @@ namespace demo26
                             Unit = Convert.ToString(r["Unit"]),
                             StockQty = Convert.ToInt32(r["StockQty"]),
                             DiscountPercent = Convert.ToDecimal(r["DiscountPercent"]),
-                            ImagePath = Convert.ToString(r["ImagePath"])
+                            ImagePath = Convert.ToString(r["ImagePath"]),
                         });
                     }
                 }

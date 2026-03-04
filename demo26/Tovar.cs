@@ -79,7 +79,9 @@ namespace demo26
                             Price = r.GetDecimal(7),
                             DiscountPercent = r.GetDecimal(10),
                             Description = r.IsDBNull(4) ? "" : r.GetString(4),
-                            ImagePath = r.IsDBNull(11) ? "" : r.GetString(11),
+                            ImagePath = r["ImagePath"] == DBNull.Value ? "" : Convert.ToString(r["ImagePath"])
+                            //ImagePath = r.IsDBNull(11) ? "" : r.GetString(11),
+                            //ImageBytes = r.IsDBNull(11) ? null : (byte[])r.GetValue(11),
                         });
                     }
                 }
@@ -147,6 +149,11 @@ namespace demo26
 
             // если место оставить, но не давать нажать:
             // pTools.Enabled = allowed;
+        }
+
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -19,7 +19,8 @@ namespace demo26
         public string Unit { get; set; }
         public int StockQty { get; set; }
         public decimal DiscountPercent { get; set; }
-        public string ImagePath { get; set; }
+        public string ImagePath { get; set; }   // тут будет "1.jpg" или "Resources\\images\\1.jpg"
+
     }
 
 }
