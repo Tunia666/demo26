@@ -12,16 +12,17 @@ using demo26;
 
 namespace demo26
 {
-    public partial class Tovar: Form
+    public partial class Tovar : Form
     {
         public Tovar()
         {
             InitializeComponent();
             this.Load += Tovar_Load;
         }
-        static string conn = @"Data Source=(localdb)\test;Initial Catalog=Demo26.2;Integrated Security=true";
+        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
         SqlConnection con = new SqlConnection(conn);
         private readonly ProductRepository _repo = new ProductRepository();
+        private List<Product> _allProducts = new List<Product>();
         private void Tovar_Load(object sender, EventArgs e)
         {
             // ФИО в шапку
@@ -30,66 +31,105 @@ namespace demo26
             // права доступа
             ApplyRoleUi();
 
+            // сортировка по остатку 
+            cbSortQty.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbSortQty.Items.Clear();
+            cbSortQty.Items.Add("Без сортировки");
+            cbSortQty.Items.Add("По возрастанию");
+            cbSortQty.Items.Add("По убыванию");
+            cbSortQty.SelectedIndex = 0;
+
+            // сортировка по поставщику
+            cbSupplier.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbSupplier.Items.Clear();
+            cbSupplier.Items.Add("Без сортировки");
+            cbSupplier.Items.Add("Поставщик А-Я");
+            cbSupplier.Items.Add("Поставщик Я-А");
+            cbSupplier.SelectedIndex = 0;
+
+            cbSortQty.SelectedIndexChanged += (s, ev) => ApplySearchAndSort();
+            cbSupplier.SelectedIndexChanged += (s, ev) => ApplySearchAndSort();
+
+            // обработчик поиска
+            txtSearch.TextChanged += (s, ev) => ApplySearchAndSort();
+
             // Загрузка товаров
             ReloadProducts();
-        
         }
         private void ReloadProducts()
         {
-            var items = _repo.GetAll();
-            ShowProducts(items); // добавляет ProductCard в flpProducts
+            _allProducts = _repo.GetAll();
+            ApplySearchAndSort(); // покажет сразу (и с учетом текста в поиске, если он есть)
         }
-        public List<Product> GetAll()
+
+        //метод фильтрации
+        private void ApplySearchAndSort()
         {
-            var list = new List<Product>();
-           
-            //using (var con = new SqlConnection(DbConfig.ConnectionString))
-            using (var cmd = new SqlCommand(@"
-        SELECT
-            [id товара] AS Id,
-            [Артикул] AS Article,
-            [Наименование товара] AS Name,
-            [Категория товара] AS Category,
-            [Описание товара] AS Description,
-            [Производитель] AS Manufacturer,
-            [Поставщик] AS Supplier,
-            CAST([Цена] AS decimal(18,2)) AS Price,
-            [Единица измерения] AS Unit,
-            [Кол-во на складе] AS StockQty,
-            CAST(ISNULL([Действующая скидка],0) AS decimal(18,2)) AS DiscountPercent,
-            [Фото] AS ImagePath
-        FROM [dbo].[Товар]
-    ", con))
+            IEnumerable<Product> query = _allProducts;
+
+            // ПОИСК
+            string text = (txtSearch.Text ?? "").Trim();
+
+            if (!string.IsNullOrWhiteSpace(text))
             {
-                con.Open();
-                using (var r = cmd.ExecuteReader())
-                {
-                    while (r.Read())
-                    {
-                        list.Add(new Product
-                        {
-                            Id = r.GetInt32(0),
-                            Article = r.GetString(1),
-                            Name = r.GetString(2),
-                            Unit = r.GetString(8),
-                            Supplier = r.GetString(6),
-                            Manufacturer = r.GetString(5),
-                            Category = r.GetString(3),
-                            StockQty = r.GetInt32(9),
-                            Price = r.GetDecimal(7),
-                            DiscountPercent = r.GetDecimal(10),
-                            Description = r.IsDBNull(4) ? "" : r.GetString(4),
-                            ImagePath = r["ImagePath"] == DBNull.Value ? "" : Convert.ToString(r["ImagePath"])
-                            //ImagePath = r.IsDBNull(11) ? "" : r.GetString(11),
-                            //ImageBytes = r.IsDBNull(11) ? null : (byte[])r.GetValue(11),
-                        });
-                    }
-                }
+                var tokens = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                query = query.Where(p => tokens.All(t => ContainsInAnyTextField(p, t)));
             }
 
-            return list;
+            bool ordered = false;
+            IOrderedEnumerable<Product> orderedQuery = null;
+
+            // СОРТИРОВКА ПО ПОСТАВЩИКУ 
+            string supplierSort = cbSupplier.SelectedItem?.ToString() ?? "Без сортировки";
+
+            if (supplierSort.Contains("А-Я"))
+            {
+                orderedQuery = query.OrderBy(p => p.Supplier);
+                ordered = true;
+            }
+            else if (supplierSort.Contains("Я-А"))
+            {
+                orderedQuery = query.OrderByDescending(p => p.Supplier);
+                ordered = true;
+            }
+
+            // СОРТИРОВКА ПО ОСТАТКУ 
+            string qtySort = cbSortQty.SelectedItem?.ToString() ?? "Без сортировки";
+
+            if (qtySort.Contains("возрастан"))
+            {
+                orderedQuery = ordered
+                    ? orderedQuery.ThenBy(p => p.StockQty)
+                    : query.OrderBy(p => p.StockQty);
+                ordered = true;
+            }
+            else if (qtySort.Contains("убыван"))
+            {
+                orderedQuery = ordered
+                    ? orderedQuery.ThenByDescending(p => p.StockQty)
+                    : query.OrderByDescending(p => p.StockQty);
+                ordered = true;
+            }
+
+            ShowProducts((ordered ? orderedQuery : query).ToList());
         }
 
+        private bool ContainsInAnyTextField(Product p, string token)
+        {
+            return Contains(p.Article, token)
+                || Contains(p.Name, token)
+                || Contains(p.Category, token)
+                || Contains(p.Description, token)
+                || Contains(p.Manufacturer, token)
+                || Contains(p.Supplier, token)
+                || Contains(p.Unit, token);
+        }
+
+        private bool Contains(string value, string token)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            return value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
         private void ShowProducts(List<Product> items)
         {
             flpProducts.SuspendLayout();
@@ -98,7 +138,7 @@ namespace demo26
             foreach (var p in items)
             {
                 var card = new ProductCard();
-                card.SetData(p);     
+                card.SetData(p);
                 flpProducts.Controls.Add(card);
             }
 
@@ -108,11 +148,13 @@ namespace demo26
         {
             var res = new List<string> { "Все поставщики" };
 
+            using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-                SELECT DISTINCT [Поставщик]
-                FROM [dbo].[Товар]
-                ORDER BY [Поставщик]
-            ", con))
+        SELECT DISTINCT [Поставщик]
+        FROM [dbo].[Товар]
+        WHERE [Поставщик] IS NOT NULL AND [Поставщик] <> ''
+        ORDER BY [Поставщик]
+    ", con))
             {
                 con.Open();
                 using (var r = cmd.ExecuteReader())
@@ -139,7 +181,7 @@ namespace demo26
             bool allowed = LoginClass.Role == LoginClass.UserRole.Admin
                            || LoginClass.Role == LoginClass.UserRole.Manager;
 
-           
+
             pTools.Visible = allowed;   // панель поиска/поставщик/остаток
 
             // если нужно ещё что-то закрывать 
@@ -153,8 +195,11 @@ namespace demo26
 
         private void btnLogout_Click(object sender, EventArgs e)
         {
-
+            Auth auth = new Auth();
+            auth.Show();
+            this.Hide();
         }
     }
 }
+
 

@@ -9,7 +9,7 @@ namespace demo26
     public class ProductRepository
     {
         
-        static string conn = @"Data Source=(localdb)\test;Initial Catalog=Demo26.2;Integrated Security=true";
+        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
         
         public List<Product> GetAll()
         {
