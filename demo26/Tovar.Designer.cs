@@ -42,6 +42,7 @@
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.poisk = new System.Windows.Forms.Label();
             this.flpProducts = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnAddProduct = new System.Windows.Forms.Button();
             this.pTop.SuspendLayout();
             this.pTools.SuspendLayout();
             this.SuspendLayout();
@@ -63,7 +64,7 @@
             this.lblUserName.AutoSize = true;
             this.lblUserName.Location = new System.Drawing.Point(1277, 7);
             this.lblUserName.Name = "lblUserName";
-            this.lblUserName.Size = new System.Drawing.Size(0, 19);
+            this.lblUserName.Size = new System.Drawing.Size(0, 21);
             this.lblUserName.TabIndex = 3;
             // 
             // btnLogout
@@ -83,7 +84,7 @@
             this.lblUser.AutoSize = true;
             this.lblUser.Location = new System.Drawing.Point(1162, 9);
             this.lblUser.Name = "lblUser";
-            this.lblUser.Size = new System.Drawing.Size(108, 19);
+            this.lblUser.Size = new System.Drawing.Size(129, 21);
             this.lblUser.TabIndex = 1;
             this.lblUser.Text = "Пользователь: ";
             // 
@@ -93,12 +94,13 @@
             this.lblTitle.Font = new System.Drawing.Font("Times New Roman", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblTitle.Location = new System.Drawing.Point(12, 9);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(343, 55);
+            this.lblTitle.Size = new System.Drawing.Size(401, 64);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "Список товаров";
             // 
             // pTools
             // 
+            this.pTools.Controls.Add(this.btnAddProduct);
             this.pTools.Controls.Add(this.cbSortQty);
             this.pTools.Controls.Add(this.ostatok);
             this.pTools.Controls.Add(this.cbSupplier);
@@ -116,7 +118,7 @@
             this.cbSortQty.FormattingEnabled = true;
             this.cbSortQty.Location = new System.Drawing.Point(862, 25);
             this.cbSortQty.Name = "cbSortQty";
-            this.cbSortQty.Size = new System.Drawing.Size(121, 27);
+            this.cbSortQty.Size = new System.Drawing.Size(121, 29);
             this.cbSortQty.TabIndex = 5;
             this.cbSortQty.Text = "Без сортировки/ По возр./По убыв.";
             // 
@@ -125,7 +127,7 @@
             this.ostatok.AutoSize = true;
             this.ostatok.Location = new System.Drawing.Point(768, 28);
             this.ostatok.Name = "ostatok";
-            this.ostatok.Size = new System.Drawing.Size(64, 19);
+            this.ostatok.Size = new System.Drawing.Size(76, 21);
             this.ostatok.TabIndex = 4;
             this.ostatok.Text = "Остаток";
             // 
@@ -134,7 +136,7 @@
             this.cbSupplier.FormattingEnabled = true;
             this.cbSupplier.Location = new System.Drawing.Point(554, 25);
             this.cbSupplier.Name = "cbSupplier";
-            this.cbSupplier.Size = new System.Drawing.Size(165, 27);
+            this.cbSupplier.Size = new System.Drawing.Size(165, 29);
             this.cbSupplier.TabIndex = 3;
             // 
             // postavshick
@@ -142,7 +144,7 @@
             this.postavshick.AutoSize = true;
             this.postavshick.Location = new System.Drawing.Point(449, 28);
             this.postavshick.Name = "postavshick";
-            this.postavshick.Size = new System.Drawing.Size(84, 19);
+            this.postavshick.Size = new System.Drawing.Size(100, 21);
             this.postavshick.TabIndex = 2;
             this.postavshick.Text = "Поставщик";
             // 
@@ -150,7 +152,7 @@
             // 
             this.txtSearch.Location = new System.Drawing.Point(99, 23);
             this.txtSearch.Name = "txtSearch";
-            this.txtSearch.Size = new System.Drawing.Size(315, 26);
+            this.txtSearch.Size = new System.Drawing.Size(315, 29);
             this.txtSearch.TabIndex = 1;
             // 
             // poisk
@@ -158,10 +160,10 @@
             this.poisk.AutoSize = true;
             this.poisk.Location = new System.Drawing.Point(18, 23);
             this.poisk.Name = "poisk";
-            this.poisk.Size = new System.Drawing.Size(51, 19);
+            this.poisk.Size = new System.Drawing.Size(61, 21);
             this.poisk.TabIndex = 0;
             this.poisk.Text = "Поиск";
-            this.poisk.Click += new System.EventHandler(this.label1_Click);
+            //this.poisk.Click += new System.EventHandler(this.label1_Click);
             // 
             // flpProducts
             // 
@@ -172,9 +174,19 @@
             this.flpProducts.Size = new System.Drawing.Size(1380, 617);
             this.flpProducts.TabIndex = 2;
             // 
+            // btnAddProduct
+            // 
+            this.btnAddProduct.Location = new System.Drawing.Point(1032, 24);
+            this.btnAddProduct.Name = "btnAddProduct";
+            this.btnAddProduct.Size = new System.Drawing.Size(174, 30);
+            this.btnAddProduct.TabIndex = 6;
+            this.btnAddProduct.Text = "Добавить товар";
+            this.btnAddProduct.UseVisualStyleBackColor = true;
+            this.btnAddProduct.Click += new System.EventHandler(this.btnAddProduct_Click);
+            // 
             // Tovar
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1380, 757);
@@ -209,5 +221,6 @@
         private System.Windows.Forms.ComboBox cbSupplier;
         private System.Windows.Forms.Label postavshick;
         private System.Windows.Forms.Label lblUserName;
+        private System.Windows.Forms.Button btnAddProduct;
     }
 }

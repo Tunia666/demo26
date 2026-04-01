@@ -2,23 +2,35 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using demo26;   
 
-namespace demo26 
+namespace demo26
 {
     public partial class ProductCard : UserControl
     {
-        
         public int ProductId { get; private set; }
+
+        // Храним весь объект товара
+        private Product _product;
+
+        // Событие для формы списка
+        public event EventHandler<Product> ProductClicked;
 
         public ProductCard()
         {
             InitializeComponent();
+
+            // Клик по самой карточке
+            this.Click += Card_Click;
+
+            // Клик по всем вложенным элементам
+            SubscribeClicks(this);
         }
 
         public void SetData(Product p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
+
+            _product = p;
             ProductId = p.Id;
 
             // шапка
@@ -64,7 +76,27 @@ namespace demo26
             else
                 BackColor = Color.White;
 
+            // чтобы было визуально понятно, что элемент можно нажимать
+            this.Cursor = Cursors.Hand;
         }
+
+        private void Card_Click(object sender, EventArgs e)
+        {
+            if (_product != null)
+                ProductClicked?.Invoke(this, _product);
+        }
+
+        private void SubscribeClicks(Control parent)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                ctrl.Click += Card_Click;
+
+                if (ctrl.HasChildren)
+                    SubscribeClicks(ctrl);
+            }
+        }
+
         private Image LoadPhotoOrStub(string path)
         {
             try
@@ -73,16 +105,13 @@ namespace demo26
                 {
                     string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-                    // если в БД уже лежит "Resources\\images\\1.jpg"
                     string full = Path.IsPathRooted(path)
                         ? path
                         : Path.Combine(baseDir, path);
 
-                    // если в БД лежит только "1.jpg" — ищем в Resources\images
                     if (!File.Exists(full))
                         full = Path.Combine(baseDir, "Resources", "images", path);
 
-                    // запасной вариант: bin\...\images\1.jpg (если потом будет перенос файла)
                     if (!File.Exists(full))
                         full = Path.Combine(baseDir, "images", path);
 
@@ -96,12 +125,11 @@ namespace demo26
             }
             catch { }
 
-            return Properties.Resources.picture; // заглушка
+            return Properties.Resources.picture;
         }
 
         private void tip_Paint(object sender, PaintEventArgs e)
         {
-
         }
     }
 }

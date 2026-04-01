@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using demo26;
 
 namespace demo26
 {
@@ -19,19 +13,21 @@ namespace demo26
             InitializeComponent();
             this.Load += Tovar_Load;
         }
+
         static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
         SqlConnection con = new SqlConnection(conn);
+
         private readonly ProductRepository _repo = new ProductRepository();
         private List<Product> _allProducts = new List<Product>();
+
+        private bool IsAdmin => LoginClass.Role == LoginClass.UserRole.Admin;
+
         private void Tovar_Load(object sender, EventArgs e)
         {
-            // ФИО в шапку
             lblUserName.Text = LoginClass.UserName;
 
-            // права доступа
             ApplyRoleUi();
 
-            // сортировка по остатку 
             cbSortQty.DropDownStyle = ComboBoxStyle.DropDownList;
             cbSortQty.Items.Clear();
             cbSortQty.Items.Add("Без сортировки");
@@ -39,7 +35,6 @@ namespace demo26
             cbSortQty.Items.Add("По убыванию");
             cbSortQty.SelectedIndex = 0;
 
-            // сортировка по поставщику
             cbSupplier.DropDownStyle = ComboBoxStyle.DropDownList;
             cbSupplier.Items.Clear();
             cbSupplier.Items.Add("Без сортировки");
@@ -49,25 +44,21 @@ namespace demo26
 
             cbSortQty.SelectedIndexChanged += (s, ev) => ApplySearchAndSort();
             cbSupplier.SelectedIndexChanged += (s, ev) => ApplySearchAndSort();
-
-            // обработчик поиска
             txtSearch.TextChanged += (s, ev) => ApplySearchAndSort();
 
-            // Загрузка товаров
             ReloadProducts();
         }
+
         private void ReloadProducts()
         {
             _allProducts = _repo.GetAll();
-            ApplySearchAndSort(); // покажет сразу (и с учетом текста в поиске, если он есть)
+            ApplySearchAndSort();
         }
 
-        //метод фильтрации
         private void ApplySearchAndSort()
         {
             IEnumerable<Product> query = _allProducts;
 
-            // ПОИСК
             string text = (txtSearch.Text ?? "").Trim();
 
             if (!string.IsNullOrWhiteSpace(text))
@@ -79,7 +70,6 @@ namespace demo26
             bool ordered = false;
             IOrderedEnumerable<Product> orderedQuery = null;
 
-            // СОРТИРОВКА ПО ПОСТАВЩИКУ 
             string supplierSort = cbSupplier.SelectedItem?.ToString() ?? "Без сортировки";
 
             if (supplierSort.Contains("А-Я"))
@@ -93,7 +83,6 @@ namespace demo26
                 ordered = true;
             }
 
-            // СОРТИРОВКА ПО ОСТАТКУ 
             string qtySort = cbSortQty.SelectedItem?.ToString() ?? "Без сортировки";
 
             if (qtySort.Contains("возрастан"))
@@ -130,6 +119,7 @@ namespace demo26
             if (string.IsNullOrEmpty(value)) return false;
             return value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
         }
+
         private void ShowProducts(List<Product> items)
         {
             flpProducts.SuspendLayout();
@@ -139,22 +129,49 @@ namespace demo26
             {
                 var card = new ProductCard();
                 card.SetData(p);
+
+                // редактирование по нажатию на карточку — только администратор
+                if (IsAdmin)
+                {
+                    card.Cursor = Cursors.Hand;
+                    card.ProductClicked += Card_ProductClicked;
+                }
+
                 flpProducts.Controls.Add(card);
             }
 
             flpProducts.ResumeLayout();
         }
+
+        private void Card_ProductClicked(object sender, Product product)
+        {
+            if (!IsAdmin)
+            {
+                MessageBox.Show("Редактирование доступно только администратору.",
+                    "Доступ запрещён", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (var frm = new ProductEditForm(product))
+            {
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    ReloadProducts();
+                }
+            }
+        }
+
         public List<string> GetSuppliers()
         {
             var res = new List<string> { "Все поставщики" };
 
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-        SELECT DISTINCT [Поставщик]
-        FROM [dbo].[Товар]
-        WHERE [Поставщик] IS NOT NULL AND [Поставщик] <> ''
-        ORDER BY [Поставщик]
-    ", con))
+                SELECT DISTINCT [Поставщик]
+                FROM [dbo].[Товар]
+                WHERE [Поставщик] IS NOT NULL AND [Поставщик] <> ''
+                ORDER BY [Поставщик]
+            ", con))
             {
                 con.Open();
                 using (var r = cmd.ExecuteReader())
@@ -167,30 +184,32 @@ namespace demo26
             return res;
         }
 
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
         private void ApplyRoleUi()
         {
-            bool allowed = LoginClass.Role == LoginClass.UserRole.Admin
-                           || LoginClass.Role == LoginClass.UserRole.Manager;
+            // поиск и сортировку можно оставить всем
+            pTools.Visible = true;
 
+            // кнопку добавления видит только администратор
+            btnAddProduct.Visible = IsAdmin;
+            btnAddProduct.Enabled = IsAdmin;
+        }
 
-            pTools.Visible = allowed;   // панель поиска/поставщик/остаток
+        private void btnAddProduct_Click(object sender, EventArgs e)
+        {
+            if (!IsAdmin)
+            {
+                MessageBox.Show("Добавление товара доступно только администратору.",
+                    "Доступ запрещён", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-            // если нужно ещё что-то закрывать 
-            // txtSearch.Visible = allowed;
-            // cbSupplier.Visible = allowed;
-            // cbSortQty.Visible = allowed;
-
-            // если место оставить, но не давать нажать:
-            // pTools.Enabled = allowed;
+            using (var frm = new ProductEditForm())
+            {
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    ReloadProducts();
+                }
+            }
         }
 
         private void btnLogout_Click(object sender, EventArgs e)
@@ -201,5 +220,3 @@ namespace demo26
         }
     }
 }
-
-

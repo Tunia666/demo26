@@ -1,16 +1,17 @@
-﻿using System;
+﻿using demo26;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using demo26;
+using System.Drawing;
 
 
 namespace demo26
 {
     public class ProductRepository
     {
-        
+
         static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
-        
+
         public List<Product> GetAll()
         {
             var list = new List<Product>();
@@ -54,10 +55,93 @@ namespace demo26
                         });
                     }
                 }
-                
+
             }
 
             return list;
         }
+        public void Add(Product product)
+        {
+            using (var con = new SqlConnection(conn))
+            using (var cmd = new SqlCommand(@"
+                INSERT INTO [dbo].[Товар]
+                (
+                    [Артикул],
+                    [Наименование товара],
+                    [Категория товара],
+                    [Описание товара],
+                    [Производитель],
+                    [Поставщик],
+                    [Единица измерения],
+                    [Цена],
+                    [Действующая скидка],
+                    [Кол-во на складе]
+                )
+                VALUES
+                (
+                    @Article,
+                    @Name,
+                    @Category,
+                    @Description,
+                    @Manufacturer,
+                    @Supplier,
+                    @Unit,
+                    @Price,
+                    @Discount,
+                    @StockQty
+                )
+            ", con))
+            {
+                cmd.Parameters.AddWithValue("@Article", product.Article);
+                cmd.Parameters.AddWithValue("@Name", product.Name);
+                cmd.Parameters.AddWithValue("@Category", (object)product.Category ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Description", (object)product.Description ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Manufacturer", (object)product.Manufacturer ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Supplier", (object)product.Supplier ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Unit", (object)product.Unit ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Price", product.Price);
+                cmd.Parameters.AddWithValue("@Discount", product.DiscountPercent);
+                cmd.Parameters.AddWithValue("@StockQty", product.StockQty);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void Update(Product product)
+        {
+            using (var con = new SqlConnection(conn))
+            using (var cmd = new SqlCommand(@"
+                UPDATE [dbo].[Товар]
+                SET
+                    [Артикул] = @Article,
+                    [Наименование товара] = @Name,
+                    [Категория товара] = @Category,
+                    [Описание] = @Description,
+                    [Производитель] = @Manufacturer,
+                    [Поставщик] = @Supplier,
+                    [Единица измерения] = @Unit,
+                    [Цена] = @Price,
+                    [Действующая скидка] = @Discount,
+                    [Кол-во на складе] = @StockQty
+                WHERE [ID] = @Id
+            ", con))
+            {
+                cmd.Parameters.AddWithValue("@Id", product.Id);
+                cmd.Parameters.AddWithValue("@Article", product.Article);
+                cmd.Parameters.AddWithValue("@Name", product.Name);
+                cmd.Parameters.AddWithValue("@Category", (object)product.Category ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Description", (object)product.Description ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Manufacturer", (object)product.Manufacturer ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Supplier", (object)product.Supplier ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Unit", (object)product.Unit ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Price", product.Price);
+                cmd.Parameters.AddWithValue("@Discount", product.DiscountPercent);
+                cmd.Parameters.AddWithValue("@StockQty", product.StockQty);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        } 
     }
 }
