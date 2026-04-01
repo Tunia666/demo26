@@ -117,14 +117,14 @@ namespace demo26
                     [Артикул] = @Article,
                     [Наименование товара] = @Name,
                     [Категория товара] = @Category,
-                    [Описание] = @Description,
+                    [Описание товара] = @Description,
                     [Производитель] = @Manufacturer,
                     [Поставщик] = @Supplier,
                     [Единица измерения] = @Unit,
                     [Цена] = @Price,
                     [Действующая скидка] = @Discount,
                     [Кол-во на складе] = @StockQty
-                WHERE [ID] = @Id
+                WHERE [id товара] = @Id
             ", con))
             {
                 cmd.Parameters.AddWithValue("@Id", product.Id);
