@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,7 +17,7 @@ namespace demo26
         private readonly ProductRepository _repo = new ProductRepository();
         private readonly Product _editingProduct;
         private readonly bool _isEditMode;
-
+        private string _imagePath = "";
         public ProductEditForm()
         {
             InitializeComponent();
@@ -39,15 +40,19 @@ namespace demo26
         {
             if (_editingProduct == null) return;
 
-            txtArticle.Text = _editingProduct.Article;
             txtName.Text = _editingProduct.Name;
             txtCategory.Text = _editingProduct.Category;
             txtDescription.Text = _editingProduct.Description;
             txtManufacturer.Text = _editingProduct.Manufacturer;
             txtSupplier.Text = _editingProduct.Supplier;
-            numPrice.Value = Convert.ToDecimal(_editingProduct.Price);
-            numDiscount.Value = Convert.ToDecimal(_editingProduct.DiscountPercent);
-            numStockQty.Value = _editingProduct.StockQty;
+            numPrice.Value = _editingProduct.Price < 0 ? 0 : _editingProduct.Price;
+            numStockQty.Value = _editingProduct.StockQty < 0 ? 0 : _editingProduct.StockQty;
+            numDiscount.Value = _editingProduct.DiscountPercent < 0 ? 0 : _editingProduct.DiscountPercent;
+
+            if (!string.IsNullOrWhiteSpace(_editingProduct.ImagePath) && File.Exists(_editingProduct.ImagePath))
+                pbPhoto.Image = Image.FromFile(_editingProduct.ImagePath);
+            else
+                pbPhoto.Image = Properties.Resources.picture;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -60,18 +65,16 @@ namespace demo26
                 var product = new Product
                 {
                     Id = _isEditMode ? _editingProduct.Id : 0,
-                    Article = txtArticle.Text.Trim(),
                     Name = txtName.Text.Trim(),
                     Category = txtCategory.Text.Trim(),
                     Description = txtDescription.Text.Trim(),
                     Manufacturer = txtManufacturer.Text.Trim(),
                     Supplier = txtSupplier.Text.Trim(),
-                    Unit = numStockQty.Text.Trim(),
-                    Price = Convert.ToDecimal(numPrice.Value),
-                    DiscountPercent = Convert.ToDecimal(numDiscount.Value),
-                    StockQty = Convert.ToInt32(numStockQty.Value)
-                };
-
+                    Price = numPrice.Value,
+                    StockQty = (int)numStockQty.Value,
+                    DiscountPercent = numDiscount.Value,
+                    ImagePath = _imagePath
+                }; 
                 if (_isEditMode)
                     _repo.Update(product);
                 else
@@ -92,13 +95,6 @@ namespace demo26
 
         private bool ValidateForm()
         {
-            if (string.IsNullOrWhiteSpace(txtArticle.Text))
-            {
-                MessageBox.Show("Введите артикул.");
-                txtArticle.Focus();
-                return false;
-            }
-
             if (string.IsNullOrWhiteSpace(txtName.Text))
             {
                 MessageBox.Show("Введите наименование товара.");
@@ -106,10 +102,39 @@ namespace demo26
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(txtCategory.Text))
+            {
+                MessageBox.Show("Выберите категорию товара.");
+                txtCategory.Focus();
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtManufacturer.Text))
+            {
+                MessageBox.Show("Выберите производителя.");
+                txtManufacturer.Focus();
+                return false;
+            }
+
             if (string.IsNullOrWhiteSpace(txtSupplier.Text))
             {
                 MessageBox.Show("Введите поставщика.");
                 txtSupplier.Focus();
+                return false;
+            }
+
+
+            if (numPrice.Value < 0)
+            {
+                MessageBox.Show("Цена не может быть отрицательной.");
+                numPrice.Focus();
+                return false;
+            }
+
+            if (numStockQty.Value < 0)
+            {
+                MessageBox.Show("Количество на складе не может быть отрицательным.");
+                numStockQty.Focus();
                 return false;
             }
 
@@ -124,6 +149,20 @@ namespace demo26
         private void ProductEditForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnLoadPhoto_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Изображения|*.jpg;*.jpeg;*.png;*.bmp";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    _imagePath = ofd.FileName;
+                    pbPhoto.Image = Image.FromFile(_imagePath);
+                }
+            }
         }
 
         /*private void label1_Click(object sender, EventArgs e)
