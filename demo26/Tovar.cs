@@ -233,5 +233,11 @@ namespace demo26
             auth.Show();
             this.Hide();
         }
+        private void btnOrders_Click(object sender, EventArgs e)
+        {
+            OrdersForm ordersForm = new OrdersForm();
+            ordersForm.Show();
+            this.Hide();
+        }
     }
 }

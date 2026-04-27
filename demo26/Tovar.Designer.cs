@@ -35,6 +35,7 @@
             this.lblUser = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
             this.pTools = new System.Windows.Forms.Panel();
+            this.btnAddProduct = new System.Windows.Forms.Button();
             this.cbSortQty = new System.Windows.Forms.ComboBox();
             this.ostatok = new System.Windows.Forms.Label();
             this.cbSupplier = new System.Windows.Forms.ComboBox();
@@ -42,7 +43,7 @@
             this.txtSearch = new System.Windows.Forms.TextBox();
             this.poisk = new System.Windows.Forms.Label();
             this.flpProducts = new System.Windows.Forms.FlowLayoutPanel();
-            this.btnAddProduct = new System.Windows.Forms.Button();
+            this.btnOrders = new System.Windows.Forms.Button();
             this.pTop.SuspendLayout();
             this.pTools.SuspendLayout();
             this.SuspendLayout();
@@ -100,6 +101,7 @@
             // 
             // pTools
             // 
+            this.pTools.Controls.Add(this.btnOrders);
             this.pTools.Controls.Add(this.btnAddProduct);
             this.pTools.Controls.Add(this.cbSortQty);
             this.pTools.Controls.Add(this.ostatok);
@@ -112,6 +114,16 @@
             this.pTools.Name = "pTools";
             this.pTools.Size = new System.Drawing.Size(1380, 70);
             this.pTools.TabIndex = 1;
+            // 
+            // btnAddProduct
+            // 
+            this.btnAddProduct.Location = new System.Drawing.Point(1032, 24);
+            this.btnAddProduct.Name = "btnAddProduct";
+            this.btnAddProduct.Size = new System.Drawing.Size(174, 30);
+            this.btnAddProduct.TabIndex = 6;
+            this.btnAddProduct.Text = "Добавить товар";
+            this.btnAddProduct.UseVisualStyleBackColor = true;
+            this.btnAddProduct.Click += new System.EventHandler(this.btnAddProduct_Click);
             // 
             // cbSortQty
             // 
@@ -163,7 +175,6 @@
             this.poisk.Size = new System.Drawing.Size(61, 21);
             this.poisk.TabIndex = 0;
             this.poisk.Text = "Поиск";
-            //this.poisk.Click += new System.EventHandler(this.label1_Click);
             // 
             // flpProducts
             // 
@@ -174,15 +185,15 @@
             this.flpProducts.Size = new System.Drawing.Size(1380, 617);
             this.flpProducts.TabIndex = 2;
             // 
-            // btnAddProduct
+            // btnOrders
             // 
-            this.btnAddProduct.Location = new System.Drawing.Point(1032, 24);
-            this.btnAddProduct.Name = "btnAddProduct";
-            this.btnAddProduct.Size = new System.Drawing.Size(174, 30);
-            this.btnAddProduct.TabIndex = 6;
-            this.btnAddProduct.Text = "Добавить товар";
-            this.btnAddProduct.UseVisualStyleBackColor = true;
-            this.btnAddProduct.Click += new System.EventHandler(this.btnAddProduct_Click);
+            this.btnOrders.Location = new System.Drawing.Point(1220, 24);
+            this.btnOrders.Name = "btnOrders";
+            this.btnOrders.Size = new System.Drawing.Size(140, 30);
+            this.btnOrders.TabIndex = 7;
+            this.btnOrders.Text = "Заказы";
+            this.btnOrders.UseVisualStyleBackColor = true;
+            this.btnOrders.Click += new System.EventHandler(this.btnOrders_Click);
             // 
             // Tovar
             // 
@@ -222,5 +233,6 @@
         private System.Windows.Forms.Label postavshick;
         private System.Windows.Forms.Label lblUserName;
         private System.Windows.Forms.Button btnAddProduct;
+        private System.Windows.Forms.Button btnOrders;
     }
 }

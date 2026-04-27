@@ -52,8 +52,24 @@
     <Compile Include="Auth.Designer.cs">
       <DependentUpon>Auth.cs</DependentUpon>
     </Compile>
+	  <Compile Include="Order.cs" />
+	  <Compile Include="Data\OrderRepository.cs" />
+	  <Compile Include="OrdersForm.cs">
+		  <SubType>Form</SubType>
+	  </Compile>
+	  <Compile Include="OrderEditForm.cs">
+		  <SubType>Form</SubType>
+	  </Compile>
+    <Compile Include="Data\OrderRepository.cs" />
     <Compile Include="Data\ProductRepository.cs" />
     <Compile Include="LoginClass.cs" />
+    <Compile Include="Order.cs" />
+    <Compile Include="OrderEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OrdersForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Product.cs" />
     <Compile Include="ProductCard.cs">
       <SubType>UserControl</SubType>
