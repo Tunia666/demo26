@@ -19,6 +19,7 @@ namespace demo26
 
         private readonly ProductRepository _repo = new ProductRepository();
         private List<Product> _allProducts = new List<Product>();
+        private ProductEditForm _openedEditForm;
 
         private bool IsAdmin => LoginClass.Role == LoginClass.UserRole.Admin;
 
@@ -119,7 +120,33 @@ namespace demo26
             if (string.IsNullOrEmpty(value)) return false;
             return value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
         }
+        private void OpenProductForm(Product product)
+        {
+            if (_openedEditForm != null && !_openedEditForm.IsDisposed)
+            {
+                _openedEditForm.Activate();
+                MessageBox.Show("Уже открыто окно добавления или редактирования товара.",
+                    "Окно уже открыто", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
+            _openedEditForm = product == null
+                ? new ProductEditForm()
+                : new ProductEditForm(product);
+
+            try
+            {
+                if (_openedEditForm.ShowDialog() == DialogResult.OK)
+                {
+                    ReloadProducts();
+                }
+            }
+            finally
+            {
+                _openedEditForm.Dispose();
+                _openedEditForm = null;
+            }
+        }
         private void ShowProducts(List<Product> items)
         {
             flpProducts.SuspendLayout();
@@ -152,13 +179,7 @@ namespace demo26
                 return;
             }
 
-            using (var frm = new ProductEditForm(product))
-            {
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    ReloadProducts();
-                }
-            }
+            OpenProductForm(product);
         }
 
         public List<string> GetSuppliers()
@@ -203,13 +224,7 @@ namespace demo26
                 return;
             }
 
-            using (var frm = new ProductEditForm())
-            {
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    ReloadProducts();
-                }
-            }
+            OpenProductForm(null);
         }
 
         private void btnLogout_Click(object sender, EventArgs e)

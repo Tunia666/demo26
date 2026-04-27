@@ -107,7 +107,38 @@ namespace demo26
                 cmd.ExecuteNonQuery();
             }
         }
+        public bool IsProductUsedInOrders(int productId)
+        {
+            using (var con = new SqlConnection(conn))
+            using (var cmd = new SqlCommand(@"
+        SELECT COUNT(*)
+        FROM [dbo].[Позиция]
+        WHERE [Id товара] = @Id
+    ", con))
+            {
+                cmd.Parameters.AddWithValue("@Id", productId);
+                con.Open();
 
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        public void Delete(int productId)
+        {
+            if (IsProductUsedInOrders(productId))
+                throw new InvalidOperationException("Нельзя удалить товар, который присутствует в заказе.");
+
+            using (var con = new SqlConnection(conn))
+            using (var cmd = new SqlCommand(@"
+        DELETE FROM [dbo].[Товар]
+        WHERE [id товара] = @Id
+    ", con))
+            {
+                cmd.Parameters.AddWithValue("@Id", productId);
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
         public void Update(Product product)
         {
             using (var con = new SqlConnection(conn))
