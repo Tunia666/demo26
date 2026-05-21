@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
 
 namespace demo26
@@ -10,7 +7,7 @@ namespace demo26
     public class OrderRepository
     {
         private static readonly string conn =
-            @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
+            @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26;Integrated Security=true";
 
         public List<Order> GetAll()
         {
@@ -20,16 +17,29 @@ namespace demo26
             using (var cmd = new SqlCommand(@"
                 SELECT
                     z.[Номер заказа] AS Id,
+
                     ISNULL((
-                        SELECT TOP 1 p.[Артикул]
-                        FROM [dbo].[Позиция] p
-                        WHERE p.[Id заказа] = z.[Номер заказа]
+                        SELECT TOP 1 pos.[Артикул]
+                        FROM [dbo].[Позиция] pos
+                        WHERE pos.[Id заказа] = z.[Номер заказа]
                     ), '') AS Article,
+
                     z.[Статус заказа] AS Status,
                     z.[Адрес пункта выдачи] AS PickupPointId,
+
+                    CONCAT(
+                        pv.[Индекс], ', ',
+                        pv.[ Город], ', ул. ',
+                        pv.[ Улица], ', д. ',
+                        ISNULL(CAST(pv.[ Дом] AS nvarchar(20)), '')
+                    ) AS PickupPointAddress,
+
                     z.[Дата заказа] AS OrderDate,
                     z.[Дата доставки] AS DeliveryDate
+
                 FROM [dbo].[Заказы] z
+                INNER JOIN [dbo].[Пункты выдачи] pv
+                    ON z.[Адрес пункта выдачи] = pv.[id пункта]
                 ORDER BY z.[Номер заказа] DESC
             ", con))
             {
@@ -45,6 +55,7 @@ namespace demo26
                             Article = Convert.ToString(r["Article"]),
                             Status = Convert.ToString(r["Status"]),
                             PickupPointId = Convert.ToInt32(r["PickupPointId"]),
+                            PickupPointAddress = Convert.ToString(r["PickupPointAddress"]),
                             OrderDate = Convert.ToDateTime(r["OrderDate"]),
                             DeliveryDate = Convert.ToDateTime(r["DeliveryDate"])
                         });
@@ -55,13 +66,20 @@ namespace demo26
             return list;
         }
 
-        public List<int> GetPickupPoints()
+        public List<PickupPoint> GetPickupPoints()
         {
-            var list = new List<int>();
+            var list = new List<PickupPoint>();
 
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-                SELECT [id пункта]
+                SELECT
+                    [id пункта] AS Id,
+                    CONCAT(
+                        [Индекс], ', ',
+                        [ Город], ', ул. ',
+                        [ Улица], ', д. ',
+                        ISNULL(CAST([ Дом] AS nvarchar(20)), '')
+                    ) AS Address
                 FROM [dbo].[Пункты выдачи]
                 ORDER BY [id пункта]
             ", con))
@@ -71,7 +89,13 @@ namespace demo26
                 using (var r = cmd.ExecuteReader())
                 {
                     while (r.Read())
-                        list.Add(Convert.ToInt32(r[0]));
+                    {
+                        list.Add(new PickupPoint
+                        {
+                            Id = Convert.ToInt32(r["Id"]),
+                            Address = Convert.ToString(r["Address"])
+                        });
+                    }
                 }
             }
 
@@ -93,43 +117,45 @@ namespace demo26
         public void Add(Order order)
         {
             using (var con = new SqlConnection(conn))
-            using (var cmd = new SqlCommand(@"
-                INSERT INTO [dbo].[Заказы]
-                (
-                    [Дата заказа],
-                    [Дата доставки],
-                    [Адрес пункта выдачи],
-                    [Фамилия клиента],
-                    [Имя клиента],
-                    [Отчество клиента],
-                    [Код для получения],
-                    [Статус заказа]
-                )
-                VALUES
-                (
-                    @OrderDate,
-                    @DeliveryDate,
-                    @PickupPointId,
-                    N'Не указано',
-                    N'Не указано',
-                    NULL,
-                    100,
-                    @Status
-                );
-
-                SELECT SCOPE_IDENTITY();
-            ", con))
             {
-                cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate.Date);
-                cmd.Parameters.AddWithValue("@DeliveryDate", order.DeliveryDate.Date);
-                cmd.Parameters.AddWithValue("@PickupPointId", order.PickupPointId);
-                cmd.Parameters.AddWithValue("@Status", order.Status);
-
                 con.Open();
-                int orderId = Convert.ToInt32(cmd.ExecuteScalar());
 
-                if (!string.IsNullOrWhiteSpace(order.Article))
+                using (var cmd = new SqlCommand(@"
+                    INSERT INTO [dbo].[Заказы]
+                    (
+                        [Дата заказа],
+                        [Дата доставки],
+                        [Адрес пункта выдачи],
+                        [Фамилия клиента],
+                        [Имя клиента],
+                        [Отчество клиента],
+                        [Код для получения],
+                        [Статус заказа]
+                    )
+                    VALUES
+                    (
+                        @OrderDate,
+                        @DeliveryDate,
+                        @PickupPointId,
+                        N'Не указано',
+                        N'Не указано',
+                        NULL,
+                        100,
+                        @Status
+                    );
+
+                    SELECT SCOPE_IDENTITY();
+                ", con))
+                {
+                    cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate.Date);
+                    cmd.Parameters.AddWithValue("@DeliveryDate", order.DeliveryDate.Date);
+                    cmd.Parameters.AddWithValue("@PickupPointId", order.PickupPointId);
+                    cmd.Parameters.AddWithValue("@Status", order.Status);
+
+                    int orderId = Convert.ToInt32(cmd.ExecuteScalar());
+
                     AddPosition(con, orderId, order.Article);
+                }
             }
         }
 
@@ -167,8 +193,7 @@ namespace demo26
                     deleteCmd.ExecuteNonQuery();
                 }
 
-                if (!string.IsNullOrWhiteSpace(order.Article))
-                    AddPosition(con, order.Id, order.Article);
+                AddPosition(con, order.Id, order.Article);
             }
         }
 
@@ -200,6 +225,9 @@ namespace demo26
 
         private void AddPosition(SqlConnection con, int orderId, string article)
         {
+            if (string.IsNullOrWhiteSpace(article))
+                throw new Exception("Введите артикул товара.");
+
             int productId = GetProductIdByArticle(con, article);
 
             using (var cmd = new SqlCommand(@"

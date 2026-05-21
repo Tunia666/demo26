@@ -14,7 +14,7 @@ namespace demo26
             this.Load += Tovar_Load;
         }
 
-        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
+        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26;Integrated Security=true";
         SqlConnection con = new SqlConnection(conn);
 
         private readonly ProductRepository _repo = new ProductRepository();
@@ -189,7 +189,7 @@ namespace demo26
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
                 SELECT DISTINCT [Поставщик]
-                FROM [dbo].[Товар]
+                FROM [dbo].[Tovar]
                 WHERE [Поставщик] IS NOT NULL AND [Поставщик] <> ''
                 ORDER BY [Поставщик]
             ", con))
@@ -235,7 +235,7 @@ namespace demo26
         }
         private void btnOrders_Click(object sender, EventArgs e)
         {
-            OrdersForm ordersForm = new OrdersForm();
+            OrderForm ordersForm = new OrderForm();
             ordersForm.Show();
             this.Hide();
         }

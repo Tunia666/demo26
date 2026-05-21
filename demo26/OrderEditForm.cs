@@ -1,30 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace demo26
 {
-    public class OrderEditForm : Form
+    public partial class OrderEditForm : Form
     {
         private readonly OrderRepository _repo = new OrderRepository();
         private readonly Order _editingOrder;
         private readonly bool _isEditMode;
-
-        private TextBox txtArticle;
-        private ComboBox cbStatus;
-        private ComboBox cbPickupPoint;
-        private DateTimePicker dtpOrderDate;
-        private DateTimePicker dtpDeliveryDate;
-        private Button btnSave;
-        private Button btnDelete;
-        private Button btnCancel;
-
-        private bool IsAdmin => LoginClass.Role == LoginClass.UserRole.Admin;
-
         public OrderEditForm()
         {
             _isEditMode = false;
@@ -42,128 +32,11 @@ namespace demo26
             LoadDataToControls();
             FillOrderData();
         }
-
-        private void InitializeComponent()
+        private bool IsAdmin => LoginClass.Role == LoginClass.UserRole.Admin;
+        private void OrderEditForm_Load(object sender, EventArgs e)
         {
-            Width = 520;
-            Height = 420;
-            StartPosition = FormStartPosition.CenterScreen;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
 
-            var lblArticle = new Label
-            {
-                Text = "Артикул:",
-                Location = new Point(30, 35),
-                AutoSize = true
-            };
-
-            txtArticle = new TextBox
-            {
-                Location = new Point(220, 32),
-                Width = 220
-            };
-
-            var lblStatus = new Label
-            {
-                Text = "Статус заказа:",
-                Location = new Point(30, 85),
-                AutoSize = true
-            };
-
-            cbStatus = new ComboBox
-            {
-                Location = new Point(220, 82),
-                Width = 220,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            var lblPickupPoint = new Label
-            {
-                Text = "Адрес пункта выдачи:",
-                Location = new Point(30, 135),
-                AutoSize = true
-            };
-
-            cbPickupPoint = new ComboBox
-            {
-                Location = new Point(220, 132),
-                Width = 220,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            var lblOrderDate = new Label
-            {
-                Text = "Дата заказа:",
-                Location = new Point(30, 185),
-                AutoSize = true
-            };
-
-            dtpOrderDate = new DateTimePicker
-            {
-                Location = new Point(220, 182),
-                Width = 220,
-                Format = DateTimePickerFormat.Short
-            };
-
-            var lblDeliveryDate = new Label
-            {
-                Text = "Дата выдачи:",
-                Location = new Point(30, 235),
-                AutoSize = true
-            };
-
-            dtpDeliveryDate = new DateTimePicker
-            {
-                Location = new Point(220, 232),
-                Width = 220,
-                Format = DateTimePickerFormat.Short
-            };
-
-            btnSave = new Button
-            {
-                Text = "Сохранить",
-                Location = new Point(30, 300),
-                Width = 120,
-                Height = 35
-            };
-            btnSave.Click += btnSave_Click;
-
-            btnDelete = new Button
-            {
-                Text = "Удалить",
-                Location = new Point(180, 300),
-                Width = 120,
-                Height = 35,
-                BackColor = Color.LightCoral,
-                Visible = _isEditMode && IsAdmin
-            };
-            btnDelete.Click += btnDelete_Click;
-
-            btnCancel = new Button
-            {
-                Text = "Отмена",
-                Location = new Point(330, 300),
-                Width = 120,
-                Height = 35
-            };
-            btnCancel.Click += (s, e) => Close();
-
-            Controls.Add(lblArticle);
-            Controls.Add(txtArticle);
-            Controls.Add(lblStatus);
-            Controls.Add(cbStatus);
-            Controls.Add(lblPickupPoint);
-            Controls.Add(cbPickupPoint);
-            Controls.Add(lblOrderDate);
-            Controls.Add(dtpOrderDate);
-            Controls.Add(lblDeliveryDate);
-            Controls.Add(dtpDeliveryDate);
-            Controls.Add(btnSave);
-            Controls.Add(btnDelete);
-            Controls.Add(btnCancel);
         }
-
         private void LoadDataToControls()
         {
             cbStatus.Items.Clear();
@@ -174,13 +47,9 @@ namespace demo26
             if (cbStatus.Items.Count > 0)
                 cbStatus.SelectedIndex = 0;
 
-            cbPickupPoint.Items.Clear();
-
-            foreach (var point in _repo.GetPickupPoints())
-                cbPickupPoint.Items.Add(point);
-
-            if (cbPickupPoint.Items.Count > 0)
-                cbPickupPoint.SelectedIndex = 0;
+            cbPickupPoint.DataSource = _repo.GetPickupPoints();
+            cbPickupPoint.DisplayMember = "Address";
+            cbPickupPoint.ValueMember = "Id";
 
             dtpOrderDate.Value = DateTime.Today;
             dtpDeliveryDate.Value = DateTime.Today;
@@ -196,8 +65,7 @@ namespace demo26
             if (cbStatus.Items.Contains(_editingOrder.Status))
                 cbStatus.SelectedItem = _editingOrder.Status;
 
-            if (cbPickupPoint.Items.Contains(_editingOrder.PickupPointId))
-                cbPickupPoint.SelectedItem = _editingOrder.PickupPointId;
+            cbPickupPoint.SelectedValue = _editingOrder.PickupPointId;
 
             dtpOrderDate.Value = _editingOrder.OrderDate;
             dtpDeliveryDate.Value = _editingOrder.DeliveryDate;
@@ -205,6 +73,16 @@ namespace demo26
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            if (!IsAdmin)
+            {
+                MessageBox.Show(
+                    "Сохранение заказа доступно только администратору.",
+                    "Доступ запрещён",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
             if (!ValidateForm())
                 return;
 
@@ -215,7 +93,7 @@ namespace demo26
                     Id = _isEditMode ? _editingOrder.Id : 0,
                     Article = txtArticle.Text.Trim(),
                     Status = cbStatus.SelectedItem.ToString(),
-                    PickupPointId = Convert.ToInt32(cbPickupPoint.SelectedItem),
+                    PickupPointId = Convert.ToInt32(cbPickupPoint.SelectedValue),
                     OrderDate = dtpOrderDate.Value.Date,
                     DeliveryDate = dtpDeliveryDate.Value.Date
                 };
@@ -225,16 +103,22 @@ namespace demo26
                 else
                     _repo.Add(order);
 
-                MessageBox.Show("Данные заказа сохранены.",
-                    "Успешно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "Данные заказа сохранены.",
+                    "Успешно",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
 
                 DialogResult = DialogResult.OK;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ошибка при сохранении заказа:\n" + ex.Message,
-                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Ошибка при сохранении заказа:\n" + ex.Message,
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -242,8 +126,11 @@ namespace demo26
         {
             if (!IsAdmin)
             {
-                MessageBox.Show("Удаление заказа доступно только администратору.",
-                    "Доступ запрещён", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Удаление заказа доступно только администратору.",
+                    "Доступ запрещён",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
@@ -263,16 +150,22 @@ namespace demo26
             {
                 _repo.Delete(_editingOrder.Id);
 
-                MessageBox.Show("Заказ удалён.",
-                    "Успешно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "Заказ удалён.",
+                    "Успешно",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
 
                 DialogResult = DialogResult.OK;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ошибка при удалении заказа:\n" + ex.Message,
-                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Ошибка при удалении заказа:\n" + ex.Message,
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -280,28 +173,48 @@ namespace demo26
         {
             if (string.IsNullOrWhiteSpace(txtArticle.Text))
             {
-                MessageBox.Show("Введите артикул товара.");
+                MessageBox.Show(
+                    "Введите артикул товара.",
+                    "Ошибка ввода",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 txtArticle.Focus();
                 return false;
             }
 
             if (cbStatus.SelectedItem == null)
             {
-                MessageBox.Show("Выберите статус заказа.");
+                MessageBox.Show(
+                    "Выберите статус заказа.",
+                    "Ошибка ввода",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 cbStatus.Focus();
                 return false;
             }
 
             if (cbPickupPoint.SelectedItem == null)
             {
-                MessageBox.Show("Выберите пункт выдачи.");
+                MessageBox.Show(
+                    "Выберите пункт выдачи.",
+                    "Ошибка ввода",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 cbPickupPoint.Focus();
                 return false;
             }
 
             if (dtpDeliveryDate.Value.Date < dtpOrderDate.Value.Date)
             {
-                MessageBox.Show("Дата выдачи не может быть раньше даты заказа.");
+                MessageBox.Show(
+                    "Дата выдачи не может быть раньше даты заказа.",
+                    "Ошибка ввода",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 dtpDeliveryDate.Focus();
                 return false;
             }

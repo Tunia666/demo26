@@ -22,7 +22,7 @@ namespace demo26
         {
             InitializeComponent();
         }
-        static string connectString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
+        static string connectString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26;Integrated Security=true";
         SqlConnection myConnection = new SqlConnection(connectString);
         private void Auth_Load(object sender, EventArgs e)
         {

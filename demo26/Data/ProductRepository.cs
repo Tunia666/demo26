@@ -10,7 +10,7 @@ namespace demo26
     public class ProductRepository
     {
 
-        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26.2;Integrated Security=true";
+        static string conn = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Demo26;Integrated Security=true";
 
         public List<Product> GetAll()
         {
@@ -30,7 +30,7 @@ namespace demo26
                     [Кол-во на складе] AS StockQty,
                     CAST(ISNULL([Действующая скидка],0) AS decimal(18,2)) AS DiscountPercent,
                     [Фото] AS ImagePath
-                FROM [dbo].[Товар];
+                FROM [dbo].[Tovar];
             ", con))
             {
                 con.Open();
@@ -64,7 +64,7 @@ namespace demo26
         {
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-                INSERT INTO [dbo].[Товар]
+                INSERT INTO [dbo].[Tovar]
                 (
                     [Артикул],
                     [Наименование товара],
@@ -130,7 +130,7 @@ namespace demo26
 
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-        DELETE FROM [dbo].[Товар]
+        DELETE FROM [dbo].[Tovar]
         WHERE [id товара] = @Id
     ", con))
             {
@@ -143,7 +143,7 @@ namespace demo26
         {
             using (var con = new SqlConnection(conn))
             using (var cmd = new SqlCommand(@"
-                UPDATE [dbo].[Товар]
+                UPDATE [dbo].[Tovar]
                 SET
                     [Артикул] = @Article,
                     [Наименование товара] = @Name,
